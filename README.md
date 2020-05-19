@@ -36,8 +36,11 @@ A fasta file contains all generated customized protein sequences with mutations.
   - -n [ --name ], the name of dataset.
   - -t [ --type ], The type of splicing events.
    
-   
-##### 1.3 Example
+##### 2.2 Output
+
+A fasta file contains all generated customized protein sequences with splicing events.
+
+##### 2.3 Example
    
       python python generate_se_db_pipeline.py -f1 X.MATS.JCEC.txt -f2 fromGTF.X.txt -g gencode.v28.basic.annotation.gff3 -r gencode.v28.pc_transcripts.fa -n DLD -t X
    
