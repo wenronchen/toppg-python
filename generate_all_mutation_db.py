@@ -416,10 +416,10 @@ def get_new_sequence(df,dbname,rna_db,protein_db,dataset_name):
     print("The number of heterozygous sequences is "+str(het_seq)) 
     print("The number of mixed sequences is "+str(hom_het_seq))       
             
-df=pd.read_csv(argv[1],sep='\t',header=None)  
-dataset_name=argv[2]
-db_annotation_name=argv[3]
-rna_db=argv[4]
-protein_db=argv[5]
-get_new_sequence(df,db_annotation_name,rna_db,protein_db,dataset_name)
+#df=pd.read_csv(argv[1],sep='\t',header=None)  
+#dataset_name=argv[2]
+#db_annotation_name=argv[3]
+#rna_db=argv[4]
+#protein_db=argv[5]
+#get_new_sequence(df,db_annotation_name,rna_db,protein_db,dataset_name)
      
