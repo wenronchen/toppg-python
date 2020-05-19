@@ -8,8 +8,7 @@ Created on Mon Oct  7 14:29:05 2019
 
 import sys
 import merge_psi_coordinate
-import match_trans_exon
-import generate_se_db
+import generate_all_se_db
 import argparse
 
 #df_SE_name=sys.argv[1]##"../data/SW480/SW480_as_bam/"+se_type+".MATS.JCEC.txt"
@@ -24,8 +23,9 @@ def main():
     parser.add_argument('-f1','--file1', help='The output file from rMATS,for example,SE.MATS.JCEC.txt', required=True)
     parser.add_argument('-f2','--file2', help='The output file from rMATS, for example, fromGTF.SE.txt', required=True)
     parser.add_argument('-g','--gff',help='The annotation file in gff3 format',required=True)
+    parser.add_argument('-r','--rna', help='The fasta file of transcript sequences', required=True)
+    parser.add_argument('-n','--name',help='The name of data set',required=True)
     parser.add_argument('-t','--type',help='The type of splicing events',required=True)
-    parser.add_argument('-d','--data',help='The name of data set',required=True)
     
     args = parser.parse_args()
     
@@ -33,8 +33,8 @@ def main():
         parser.print_help()
     else:
         merge_result=merge_psi_coordinate.merge_file(args.type,args.file1,args.file2)
-        match_result=match_trans_exon.match_exon(merge_result,args.gff,args.type)
-        generate_se_db.generate_db(args.type,args.gff,match_result,args.data)
+        #match_result=match_trans_exon.match_exon(merge_result,args.gff,args.type)
+        generate_all_se_db.generate_se_sequence(merge_result,args.gff,args.rna,args.name)
                 
 
 

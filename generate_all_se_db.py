@@ -270,8 +270,8 @@ def add_exon(transcript,skip_seq,position): #position is the end of the low inde
 def remove_exon(transcript,start,end):
     return transcript[:start]+transcript[end:]
 
-def generate_se_sequence(SE_name,dbname,rna_db,dataset_name):
-    df_SE=pd.read_csv(SE_name,sep='\t')
+def generate_se_sequence(df_SE,dbname,rna_db,dataset_name):
+    #df_SE=pd.read_csv(SE_name,sep='\t')
     
     records=get_trans_records(dbname)
     
@@ -434,11 +434,11 @@ def generate_se_sequence(SE_name,dbname,rna_db,dataset_name):
 
 #dbname="../data/gencode.v28.basic.annotation.gff3"
 #rna_db="../data/gencode.v28.pc_transcripts.fa"     
-SE_name=argv[1] 
-dbname=argv[2]
-rna_db=argv[3]
-dataset_name=argv[4]        
-generate_se_sequence(SE_name,dbname,rna_db,dataset_name)      
-
-finish=time.time()
-print("---- %s minutes ----" % ((finish-begin)/60))                    
+#SE_name=argv[1] 
+#dbname=argv[2]
+#rna_db=argv[3]
+#dataset_name=argv[4]        
+#generate_se_sequence(SE_name,dbname,rna_db,dataset_name)      
+#
+#finish=time.time()
+#print("---- %s minutes ----" % ((finish-begin)/60))                    
