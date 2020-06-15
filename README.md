@@ -3,7 +3,7 @@
 ## Generate the customized protein database for MS identification
 
 #### 0. Prerequisite
-Python 3.X and corresponding version of Pandas, Biopython and  Bedtools package.
+Python 3.X and corresponding version of Pandas, Biopython, Gffutils and  Bedtools package.
 
 #### 1. Protein database with mutations
 
