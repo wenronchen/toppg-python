@@ -200,7 +200,7 @@ def get_version(protein_db):
  
 
               
-def get_new_sequence(df,dbname,rna_db,protein_db,dataset_name):
+def get_new_sequence(dfname,dbname,rna_db,protein_db,dataset_name):
     version=get_version(protein_db)
     if(version=='swissprot'):
         db='sp'
@@ -242,6 +242,7 @@ def get_new_sequence(df,dbname,rna_db,protein_db,dataset_name):
     
     print("sequence_dict ready")
     
+    df=pd.read_csv(dfname,sep='\t',header=None)
     change_df=extract_transcript_change(df) 
     trans_index_dict={}
     for i in range(0,change_df.shape[0]):
