@@ -23,12 +23,6 @@ warnings.filterwarnings("ignore")
 argv=sys.argv
 begin=time.time()
 
-#chromosome_dict={'chr1':'NC000001','chr2':'NC000002','chr3':'NC000003','chr4':'NC000004','chr5':'NC000005',\
-#                  'chr6':'NC000006','chr7':'NC000007','chr8':'NC000008','chr9':'NC000009','chr10':'NC000010',\
-#                  'chr11':'NC000011','chr12':'NC000012','chr13':'NC000013','chr14':'NC000014','chr15':'NC000015',\
-#                  'chr16':'NC000016','chr17':'NC000017','chr18':'NC000018','chr19':'NC000019','chr20':'NC000020',\
-#                  'chr21':'NC000021','chr22':'NC000021','chrX':'NC000023','chrY':'NC000024'}
-
 fasta = pybedtools.example_filename('GRCh38.primary_assembly.genome.fa')
 def fetch_exon_seq(chr_,start,end,strand):
     as_str = ' '.join([chr_, str(start-1), str(end)])
@@ -438,14 +432,7 @@ def generate_se_sequence(df_SE, dfname, dbname,rna_db,exclude,output_name):
                                                       change_df.iloc[i]['mutation_type'])
                             hom_des.append(change_df.iloc[i]['mutation_type']+":"+str(change_df.iloc[i]['c_start'])+'-'+\
                             str(change_df.iloc[i]['c_end'])+str(change_df.iloc[i]['c_content'])+'_')
-                            
-#                            if(change_df.iloc[i]['mutation_type'].find('del')!=-1):
-#                                shift-=(int(change_df.iloc[i]['c_end'])-int(change_df.iloc[i]['c_start'])+1)
-#                            elif(change_df.iloc[i]['mutation_type'].find('ins')!=-1):
-#                                shift+=(int(change_df.iloc[i]['c_end'])-int(change_df.iloc[i]['c_start'])+1)
-                        
-                        #coding_start=trans_coding_dict[key][0]+shift
-                        #coding_end=trans_coding_dict[key][1]+shift
+
                         
                         if(len(hom_position_list)!=0):
                             if(strand_dict[key]=='-'):
@@ -491,12 +478,7 @@ def generate_se_sequence(df_SE, dfname, dbname,rna_db,exclude,output_name):
                         tmp_skip_id_index=find_key_index('exon_id',skip_id,trans_records)
                         tmp_info=(trans_records.iloc[tmp_skip_id_index]['chr'],trans_records.iloc[tmp_skip_id_index]['start'],\
                                   trans_records.iloc[tmp_skip_id_index]['end'])
-                        
-                        #print(tmp_info)
-#                        print(T[0],chromosome_dict[tmp_info[0]])
-#                        handle=Entrez.efetch(db="nucleotide", id=str(chromosome_dict[tmp_info[0]]), rettype="fasta", \
-#                                             strand=int(T[0]), seq_start=tmp_info[1], seq_stop=tmp_info[2])
-#                        skip_seq = str(SeqIO.read(handle, "fasta").seq)
+
                         skip_seq=fetch_exon_seq(tmp_info[0],tmp_info[1],tmp_info[2],T[0])
                         trans_prime_seq=add_exon(tmp_seq,skip_seq,position)
                         db_prime_seq=trans_prime_seq[coding_start-1:]
@@ -643,8 +625,6 @@ def generate_se_sequence(df_SE, dfname, dbname,rna_db,exclude,output_name):
                     new_sequence=trans_seq
                     
                     new_seq=str(Seq(str(new_sequence),IUPAC.ambiguous_dna).transcribe().translate(to_stop=True))
-        #            else:
-        #                new_seq=str(Seq(str(new_sequence),IUPAC.ambiguous_dna).complement().transcribe().translate(to_stop=True))
                     
                     my_seqs.append(SeqRecord(Seq(str(new_seq),IUPAC.protein),\
                                                  id=db+'|'+pid+'|'+i+'|'+gid+'_0:'+str(coding_start)+'-'+str(coding_end)+"_no_splicing",\
@@ -657,22 +637,4 @@ def generate_se_sequence(df_SE, dfname, dbname,rna_db,exclude,output_name):
     for sequence in my_seqs:
         SeqIO.write(sequence,handle,"fasta")
     handle.close()
-#    handle_trans=open("../data/"+dataset_name+"/"+dataset_name+"_all_se_transcripts"+".fasta","w")
-#    for sequence in my_transcripts:
-#        SeqIO.write(sequence,handle_trans,"fasta")
-#    handle_trans.close()
-    #return my_seqs
 
-#dbname="../data/gencode.v28.basic.annotation.gff3"  
-#SE_name=argv[1]
-#dfname=argv[2] 
-#rna_db=argv[3]
-#output_name=argv[4]
-#
-#df_SE=pd.read_csv(SE_name,sep='\t')  
-#exclude=False 
-#
-#generate_se_sequence(df_SE,dfname,dbname,rna_db,exclude,output_name)      
-#
-#finish=time.time()
-#print("---- %s minutes ----" % ((finish-begin)/60))                    
