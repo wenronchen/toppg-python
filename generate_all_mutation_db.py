@@ -456,14 +456,7 @@ def get_new_sequence(dfname,dbname,rna_db,het,exclude,output_name):
                         stop=start+1799
                     else:
                         stop=len(transcript)-1
-    #                while(coding_start>stop):
-    #                    l=l+1
-    #                    start=l*1800
-    #                    if(l+1799<len(transcript)):
-    #                        stop=l+1799
-    #                    else:
-    #                        stop=len(transcript)-1
-    #                #if(start>coding_end+shift)  
+
                     
                     het_number=len(het_list)   
                     for n in range(0,het_number):
@@ -506,10 +499,7 @@ def get_new_sequence(dfname,dbname,rna_db,het,exclude,output_name):
                                                      id=db+'|'+pid+'|'+k+'|'+gid+'_'+str(cnt)+':'+str(start+1)+'-'+str(stop+1)+'_'+des+random_des,\
                                                  description=des+random_des))
                                 random_cnt+=1
-    #                            else:
-    #                                my_seqs.append(SeqRecord(Seq(str(random_seq),IUPAC.protein),\
-    #                                                 id=db+'|'+pid+'|'+k+'|'+gid+'_'+str(cnt)+':'+str(start+1)+'-'+str(stop+1)+'_'+des+random_des,\
-    #                                             description=des))
+
                             else:
                                 random_seq,random_des=generate_random_fs(strand_dict[k],transcript[start:stop+1],\
                                                                          change_df.iloc[het_list[n]]['mutation_type'],\
@@ -550,11 +540,5 @@ def get_new_sequence(dfname,dbname,rna_db,het,exclude,output_name):
     print("The number of original sequences is "+str(original_cnt)) 
     print("The number of random sequences is "+str(random_cnt))      
             
-#dfname=argv[1]  
-#dbname=argv[2]
-#rna_db=argv[3]
-#output_name=argv[4]
-#exclude=False
-#
-#get_new_sequence(dfname,dbname,rna_db,1,exclude,output_name)
+
      
