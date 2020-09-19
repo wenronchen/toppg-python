@@ -196,7 +196,10 @@ def generate_se_sequence_combination(df_SE,dfname,dbname,rna_db,het,exclude,outp
                                     str(change_df.iloc[het_list[n]]['c_start'])+'-'+str(change_df.iloc[het_list[n]]['c_end'])+\
                                     str(change_df.iloc[het_list[n]]['c_content']))
                                     
-
+    #                                if(change_df.iloc[i]['mutation_type'].find('del')!=-1):
+    #                                    shift-=(int(change_df.iloc[i]['c_end'])-int(change_df.iloc[i]['c_start'])+1)
+    #                                elif(change_df.iloc[i]['mutation_type'].find('ins')!=-1):
+    #                                    shift+=(int(change_df.iloc[i]['c_end'])-int(change_df.iloc[i]['c_start'])+1)
                                 het_des.append(tmp_het_des)
                                 if(strand_dict[key]=='-'):
                                     new_seq=Seq(str(new_sequence),IUPAC.ambiguous_dna).complement()
@@ -250,17 +253,16 @@ def generate_se_sequence_combination(df_SE,dfname,dbname,rna_db,het,exclude,outp
                                                 tmp_new_sequence=generate_all_mutation_db.change_seq(tmp_new_sequence,int(change_df.iloc[het_list[j]]['c_start'])+shift,\
                                                                       int(change_df.iloc[het_list[j]]['c_end'])+shift,change_df.iloc[het_list[j]]['c_content'],\
                                                                       change_df.iloc[het_list[j]]['mutation_type'])
-                                            tmp_new_des=tmp_new_des.append(change_df.iloc[het_list[j]]['mutation_type']+":"+\
+                                            tmp_new_des.append(change_df.iloc[het_list[j]]['mutation_type']+":"+\
                                                 str(change_df.iloc[het_list[j]]['c_start'])+'-'+str(change_df.iloc[het_list[j]]['c_end'])+\
                                                 str(change_df.iloc[het_list[j]]['c_content']))
                                         het_des.append(tmp_new_des)
                                 
-                                if(len(tmp_new_sequence)!=0):
-                                    if(strand_dict[key]=='+'):
-                                        new_seq=tmp_new_sequence
-                                    else:
-                                        new_seq=str(Seq(str(tmp_new_sequence),IUPAC.ambiguous_dna).complement())
-                                    het_seqs.append(new_seq)
+                                        if(strand_dict[key]=='+'):
+                                            new_seq=tmp_new_sequence
+                                        else:
+                                            new_seq=str(Seq(str(tmp_new_sequence),IUPAC.ambiguous_dna).complement())
+                                        het_seqs.append(new_seq)
                     
                     
                     
@@ -283,6 +285,7 @@ def generate_se_sequence_combination(df_SE,dfname,dbname,rna_db,het,exclude,outp
                                 tmp_anno=""
                                 for d in hom_des:
                                     tmp_anno+=d
+                               
                                 for d in het_des[c]:
                                     tmp_anno+=d
                                 trans_db_annotation_dict[db_seq].append(tmp_anno) 
@@ -498,4 +501,20 @@ def generate_se_sequence_combination(df_SE,dfname,dbname,rna_db,het,exclude,outp
     for sequence in my_seqs:
         SeqIO.write(sequence,handle,"fasta")
     handle.close()
-           
+#    handle_trans=open("../data/"+dataset_name+"/"+dataset_name+"_all_se_transcripts"+".fasta","w")
+#    for sequence in my_transcripts:
+#        SeqIO.write(sequence,handle_trans,"fasta")
+#    handle_trans.close()
+    #return my_seqs
+
+#dbname="../data/gencode.v28.basic.annotation.gff3"   
+#SE_name=argv[1] 
+#dfname=argv[2]  
+#rna_db=argv[3] 
+#output_name=argv[4]
+#
+#df_SE=pd.read_csv(SE_name,sep='\t') 
+#generate_se_sequence_combination(df_SE,dfname,dbname,rna_db,output_name)      
+##
+#finish=time.time()
+#print("---- %s minutes ----" % ((finish-begin)/60))               
