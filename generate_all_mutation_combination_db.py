@@ -558,8 +558,7 @@ def get_new_sequence_combination(dfname,dbname,rna_db,exclude,output_name):
                     
     print("The number of proteins related is "+str(k_cnt))            
     print("The number of sequences generated is "+str(len(my_seqs)))
-    print("The number of homozygous is "+str(hom_cnt)) 
-    print("The number of heterozygous is "+str(het_cnt))
+
     #return my_seqs
     #handle=open(dataset_name+"_all_mutation_combination_"+version+".fasta","w")
     handle=open(output_name+".fasta","w")
@@ -572,10 +571,3 @@ def get_new_sequence_combination(dfname,dbname,rna_db,exclude,output_name):
     print("The number of original sequences is "+str(original_cnt))
     print("The number of random sequences is "+str(random_cnt))
 
-#dfname=argv[1]  
-#dbname=argv[2]
-#rna_db=argv[3]
-#output_name=argv[4]
-#exclude=False
-#
-#get_new_sequence_combination(dfname,dbname,rna_db,exclude,output_name)
