@@ -24,7 +24,7 @@ def main():
     parser.add_argument('-g','--gff',help='The annotation file in gff3 format',required=True)
     parser.add_argument('-r','--rna', help='The fasta file of transcript sequences', required=True)
     parser.add_argument('-o','--output',help='The name of output file', default="customized_db",required=False)
-    parser.add_argument('-t','--het', help='The number of heterozygous genetic variants', default="1",required=True)
+    parser.add_argument('-t','--het', help='The number of heterozygous genetic variants', default="0",required=True)
     parser.add_argument('-e','--exclude', help='Exclude the original protein sequence', action='store_true')
     
     args = parser.parse_args()
