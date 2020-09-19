@@ -1,158 +1,59 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Wed Apr 17 10:26:56 2019
+Created on Mon Oct  7 14:29:05 2019
 
 @author: wenrchen
 """
 
-#import pandas as pd
+import merge_psi_coordinate
+import generate_all_se_db
 import generate_all_mutation_db
-#from Bio import SeqIO
-import sys
+import generate_all_mutation_combination_db
+import generate_all_se_combination_db
 import argparse
 
-#dfname="../data/ex1/ex1.exonic_variant_function"
-#dbname_annotation1="../data/GCF_000001405.38_GRCh38.p12_rna.gbff"
-#dbname_annotation2="../data/gencode.v28.com.annotation.gff3"
-#dbname_sequence="../data/gencode.v28.swissprot.fasta"
-
-#dfname=sys.argv[1]
-#dbname_annotation=sys.argv[2]
-#dbname_sequence=sys.argv[3]
-#rna_db="../data/gencode.v28.pc_transcripts.fa"
-
-#def get_database_type(dbname_sequence):
-#    version=dbname_sequence
-#    ver=version.find("v")
-#    version=version[ver:]
-#    ver=version.find(".")
-#    version=version[ver+1:]
-#    ver=version.find(".")
-#    version=version[:ver]
-#    
-#    return version
-#
-#
-#
-#def pipeline_point_mutation(dfname,dbname_annotation,dbname_sequence,dataset_name):
-#    database_type=get_database_type(dbname_sequence)
-#
-#    protein_map_result=get_protein_id.get_protein_id_nonsynonymous(dfname,dbname_annotation,dataset_name)
-#    protein_map_result.to_csv('../data/'+dataset_name+'/'+database_type+'/'+dataset_name+'_'+database_type+'_map_result.tsv',sep='\t',index=False)
-#    
-#    
-#    export_to_xml.generate_xml(protein_map_result,dataset_name,database_type)
-#    
-#    xml_name='../data/'+dataset_name+'/'+database_type+'/'+dataset_name+'_'+database_type+'_protein_mutation.xml'
-#    
-#    generate_db_with_xml.customized_db_generate(xml_name,dbname_sequence,dataset_name)
-#
-#
-#def pipeline_nonfs_fs(dfname,dbname_annotation,dbname_sequence,rna_db,dataset_name):
-#    database_type=get_database_type(dbname_sequence)
-#    
-#    protein_map_result=get_protein_id.get_protein_id_nonfs(dfname,dbname_annotation,dataset_name)
-#    protein_map_result.to_csv('../data/'+dataset_name+'/'+database_type+'/'+dataset_name+'_'+database_type+'_nonfs_map_result.tsv',sep='\t',index=False)
-#    
-#    export_to_xml.generate_xml_nonfs(protein_map_result,dataset_name,database_type)
-#    
-#    xml_name='../data/'+dataset_name+'/'+database_type+'/'+dataset_name+'_'+database_type+'_nonfs_protein_mutation.xml'
-#    rna_map_protein=get_protein_id.prepare_gencode_database(dbname_annotation)
-#    
-#    #rna_map_protein=pd.read_csv('../data/protein_gencode_db.tsv',sep='\t')
-#    nonfs_seqs=generate_db_with_xml.nonfs_db_generate(xml_name,dbname_sequence,dataset_name)
-#    fs_seqs=get_new_fsSequence.get_protein_sequence_fs(rna_db,rna_map_protein,dfname,dbname_sequence, dataset_name)
-#    
-#    seqs=nonfs_seqs+fs_seqs
-#    print("The number of sequences in total is "+ str(len(seqs)))
-#    handle=open("../data/"+dataset_name+"/"+database_type+'/'+dataset_name+"_nonfs_fs_"+database_type+".fasta","w")
-#    for sequence in seqs:
-#        SeqIO.write(sequence,handle,"fasta") 
-#
-#def pipeline_with_combination(dfname,dbname_annotation,dbname_sequence,rna_db,dataset_name):
-#    database_type=get_database_type(dbname_sequence)
-#    
-#    protein_map_result=get_protein_id.get_protein_id_nonsynonymous(dfname,dbname_annotation,dataset_name)
-#    protein_nonfs_map_result=get_protein_id.get_protein_id_nonfs(dfname,dbname_annotation,dataset_name)
-#    
-#    export_to_xml.generate_xml(protein_map_result,dataset_name,database_type)
-#    export_to_xml.generate_xml_nonfs(protein_nonfs_map_result,dataset_name,database_type)
-#    
-#    xml_name='../data/'+dataset_name+'/'+database_type+'/'+dataset_name+'_'+database_type+'_protein_mutation.xml'
-#    nonfs_xml_name='../data/'+dataset_name+'/'+database_type+'/'+dataset_name+'_'+database_type+'_nonfs_protein_mutation.xml'
-#    
-#    no_fs_seqs=generate_db_with_xml.customized_db_generate_with_combination(xml_name,nonfs_xml_name,dbname_sequence,dataset_name)
-#    
-#    rna_map_protein=get_protein_id.prepare_gencode_database(dbname_annotation)
-#    
-#    fs_seqs=get_new_fsSequence.get_protein_sequence_fs_with_combination(rna_db,rna_map_protein,dfname,dbname_sequence,dataset_name,xml_name,nonfs_xml_name)
-#    seqs=no_fs_seqs+fs_seqs
-#    
-#    print("The number of sequences in total is "+ str(len(seqs)))
-#    handle=open("../data/"+dataset_name+"/"+database_type+"/"+dataset_name+"_combination_"+database_type+".fasta","w")
-#    for sequence in seqs:
-#        SeqIO.write(sequence,handle,"fasta") 
-#
-#def pipeline_with_combination_only(dfname,dbname_annotation,dbname_sequence,rna_db,dataset_name):
-#    database_type=get_database_type(dbname_sequence)
-#    
-#    protein_map_result=get_protein_id.get_protein_id_nonsynonymous(dfname,dbname_annotation,dataset_name)
-#    protein_nonfs_map_result=get_protein_id.get_protein_id_nonfs(dfname,dbname_annotation,dataset_name)
-#    
-#    export_to_xml.generate_xml(protein_map_result,dataset_name,database_type)
-#    export_to_xml.generate_xml_nonfs(protein_nonfs_map_result,dataset_name,database_type)
-#    
-#    xml_name='../data/'+dataset_name+'/'+database_type+'/'+dataset_name+'_'+database_type+'_protein_mutation.xml'
-#    nonfs_xml_name='../data/'+dataset_name+'/'+database_type+'/'+dataset_name+'_'+database_type+'_nonfs_protein_mutation.xml'
-#    
-#    no_fs_seqs=generate_db_with_xml.customized_db_generate_with_combination_only(xml_name,nonfs_xml_name,dbname_sequence,dataset_name)
-#    
-#    rna_map_protein=get_protein_id.prepare_gencode_database(dbname_annotation)
-#    
-#    fs_seqs=get_new_fsSequence.get_protein_sequence_fs_with_combination_only(rna_db,rna_map_protein,dfname,dbname_sequence,dataset_name,xml_name,nonfs_xml_name)
-#    seqs=no_fs_seqs+fs_seqs
-#    
-#    print("The number of sequences in total is "+ str(len(seqs)))
-#    handle=open("../data/"+dataset_name+"/"+database_type+"/"+dataset_name+"_combination_only_"+database_type+".fasta","w")
-#    for sequence in seqs:
-#        SeqIO.write(sequence,handle,"fasta") 
 
 def main():
-    parser = argparse.ArgumentParser(description='Generate the protein database with mutations. ',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser = argparse.ArgumentParser(description='Generate the protein database with variations. ',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-
-    parser.add_argument('-f','--file', help='The output file from Annovar,for example,ex1.exonic_variant_function', required=True)
+    parser.add_argument('-s','--splicing', help='If the parameter is added, the splicing variations will be added to the customized protein database', action='store_true')
+    parser.add_argument('-f','--file', help='The output file from Annovar,for example,ex1.exonic_variant_function', required=False)
+    parser.add_argument('-f1','--file1', help='The output file from rMATS,for example,SE.MATS.JCEC.txt', required=False)
+    parser.add_argument('-f2','--file2', help='The output file from rMATS, for example, fromGTF.SE.txt', required=False)
     parser.add_argument('-g','--gff',help='The annotation file in gff3 format',required=True)
     parser.add_argument('-r','--rna', help='The fasta file of transcript sequences', required=True)
-    parser.add_argument('-s','--sequence', help='The fasta file of protein sequences', required=True)
-    parser.add_argument('-n','--name',help='The name of dataset',required=True)
+    parser.add_argument('-o','--output',help='The name of output file', default="customized_db",required=False)
+    parser.add_argument('-t','--het', help='The number of heterozygous genetic variants', default="1",required=True)
+    parser.add_argument('-e','--exclude', help='Exclude the original protein sequence', action='store_true')
     
     args = parser.parse_args()
+    het=int(args.het)
+    if(args.splicing==True):
+        if(args.file1=="" or args.file2=="" or args.file=="" or args.gff=="" or args.rna==""):
+            print("Some parameters required for this pattern are missing!")
+        else:
+            merge_result=merge_psi_coordinate.merge_file(args.file1,args.file2)
+            if(het==0):
+                generate_all_se_db.generate_se_sequence(merge_result,args.file,args.gff,args.rna,args.exclude,args.output)
+            elif(het==1 or het==2):
+                generate_all_se_combination_db.generate_se_sequence_combination(merge_result,args.file,args.gff,args.rna,het,args.exclude,args.output)
+                
+
+        
+    else:   
+        
+        if((args.file=="") or (args.gff=="") or (args.rna=="")):
+            print("Some parameters required for this pattern are missing!")
+        else:
+            if((het==1) or (het==0)):
+                generate_all_mutation_db.get_new_sequence(args.file,args.gff,args.rna,het,args.exclude,args.output)
+            elif(het==2):
+                generate_all_mutation_combination_db.get_new_sequence_combination(args.file,args.gff,args.rna,args.exclude,args.output)
+                
     
-    if len(sys.argv) <5 :
-        parser.print_help()
-    else:
-        generate_all_mutation_db.get_new_sequence(args.file,args.gff,args.rna,args.sequence,args.name)
-#        dataset_name=''
-#        df_name=args.file
-#        while(df_name.find('/')!=-1):
-#            label=df_name.find('/')
-#            df_name=df_name[label+1:]
-#        label1=df_name.find('.')
-#        label2=df_name.find('_')
-#        if(label1<label2):
-#            dataset_name=df_name[:label1]
-#        else:
-#            dataset_name=df_name[:label2]
-#        if(args.type=='p'):
-#            pipeline_point_mutation(args.file,args.gff,args.rna,args.sequence,args.name)
-#        if(args.type=='f'):
-#            pipeline_nonfs_fs(args.file,args.gff,args.sequence,args.rna,dataset_name)
-#        if(args.type=='c'):
-#            pipeline_with_combination(args.file,args.gff,args.sequence,args.rna,dataset_name)
-#        if(args.type=='o'):
-#            pipeline_with_combination_only(args.file,args.gff,args.sequence,args.rna,dataset_name)
+        
 
 if(__name__ == "__main__"):
     main()
+    

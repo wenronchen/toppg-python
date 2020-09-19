@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
+Created on Wed Jul  1 15:00:38 2020
 
 @author: wenrchen
 """
+
+##generate mutation database with at most two combination of heterozygous variants
 
 import pandas as pd
 import sys
@@ -23,17 +26,6 @@ def change_seq(seq,start,end,content,t):
         return seq[:start-1]+seq[end:]
     elif(t.find('ins')!=-1):
         return seq[:start-1]+content+seq[end:]
-
-#def get_protein_coding_list_from_db(protein_db):
-#    protein_coding_list=[]
-#    seqs = SeqIO.parse(protein_db,"fasta")
-#    for seq in seqs:
-#        tmp=seq.id
-#        flag=tmp.find("ENST")
-#        tmp=tmp[flag:]
-#        flag=tmp.find('|')
-#        protein_coding_list.append(tmp[:flag])
-#    return protein_coding_list
 
 def extract_transcript_change(df):
     mrna=[]
@@ -75,7 +67,7 @@ def extract_transcript_change(df):
             tmp=df.iloc[i][2]
             tmp=tmp.split(',')
             for t in tmp:
-                if((t.find(":")!=-1) and (t.find('X')==-1)):
+                if(t.find(":")!=-1):
                     mrna_flag=t.find(":")
                     t=t[mrna_flag+1:]
                     exon_flag=t.find(":")
@@ -199,13 +191,16 @@ def get_version(rna_db):
     
     return version
  
-def generate_random_SNV_site(strand,trans_id,trans_seq,SNV_position):
+def generate_random_SNV_site(strand,trans_id,trans_seq,SNV_position,protein):##protein seq true or false
     alphabet="ARNDCEQGHILKMFPSTWYV"
     protein_seq=""
-    if(strand=='+'):
-        protein_seq=str(Seq(str(trans_seq),IUPAC.ambiguous_dna).transcribe().translate(to_stop=True))
+    if(protein==False):
+        if(strand=='+'):
+            protein_seq=str(Seq(str(trans_seq),IUPAC.ambiguous_dna).transcribe().translate(to_stop=True))
+        else:
+            protein_seq=str(Seq(str(trans_seq),IUPAC.ambiguous_dna).complement().transcribe().translate(to_stop=True))
     else:
-        protein_seq=str(Seq(str(trans_seq),IUPAC.ambiguous_dna).complement().transcribe().translate(to_stop=True))
+        protein_seq=trans_seq
     if(len(protein_seq)!=0):
         
         aa_pos=0
@@ -222,17 +217,18 @@ def generate_random_SNV_site(strand,trans_id,trans_seq,SNV_position):
         while(random_aa==original_random_aa):
             random_aa=alphabet[random.randint(0,19)]
         new_seq=protein_seq[:random_pos]+random_aa+protein_seq[random_pos+1:]
-        random_des="random_snv:"+original_random_aa+str(random_pos+1)+random_aa
+        random_des="random_snv:"+original_random_aa+str(random_pos+1)+random_aa+'_'
     else:
         new_seq=""
         random_des=""
     
-    return new_seq,random_des
+    return new_seq,random_des[:-1]
 
 def generate_random_fs(strand,trans_seq,mutation_type,length,position):
     alphabet='AGCT'
     #alphabet="ARNDCEQGHILKMFPSTWYV"
-    
+    new_seq=""
+    random_des=""
     if(len(trans_seq)!=0):
         random_pos=position
         while(random_pos==position):
@@ -270,15 +266,15 @@ def generate_random_fs(strand,trans_seq,mutation_type,length,position):
     else:
         protein_seq=str(Seq(str(new_seq),IUPAC.ambiguous_dna).complement().transcribe().translate(to_stop=True))
     return protein_seq,random_des
-
               
-def get_new_sequence(dfname,dbname,rna_db,het,exclude,output_name):
+def get_new_sequence_combination(dfname,dbname,rna_db,exclude,output_name):
     version=get_version(rna_db)
     if(version=='swissprot'):
         db='sp'
     else:
         db=version
-              
+    
+    
     sequence_dict={}
     rna_seq=SeqIO.parse(rna_db,'fasta')
 ##check the correctness of rna-seqs
@@ -298,8 +294,9 @@ def get_new_sequence(dfname,dbname,rna_db,het,exclude,output_name):
         if(split_flag==-1):
             print("The format of file of parameter -r(--rna) is incorrect!")
             return 0
-
+    
     rna_seqs=SeqIO.parse(rna_db,'fasta')
+    
     for seq in rna_seqs:
         tmp=seq.id
         flag=tmp.find("|")
@@ -317,6 +314,8 @@ def get_new_sequence(dfname,dbname,rna_db,het,exclude,output_name):
     
     print("sequence_dict ready")
     
+    
+    #protein_coding_list=get_protein_coding_list_from_db(protein_db)   
     records=DataIterator(dbname)
     strand_dict={}
     protein_id_dict={}
@@ -326,11 +325,13 @@ def get_new_sequence(dfname,dbname,rna_db,het,exclude,output_name):
                 if(record.attributes['transcript_id'][0] in sequence_dict.keys()):
                     strand_dict[record.attributes['transcript_id'][0]]=record[6]
                     protein_id_dict[record.attributes['transcript_id'][0]]=(record.attributes['protein_id'][0],\
-                                   record.attributes['gene_id'][0])
+                               record.attributes['gene_id'][0])
                     
     
     print("protein_id_dict ready")
-    
+              
+
+
     df=pd.read_csv(dfname,sep='\t',header=None)
     change_df=extract_transcript_change(df) 
     trans_index_dict={}
@@ -342,10 +343,12 @@ def get_new_sequence(dfname,dbname,rna_db,het,exclude,output_name):
     
     my_seqs=[]
     k_cnt=0
+    hom_cnt=0
+    het_cnt=0
     
     hom_only_cnt=0
-    hom_het_cnt=0
     het_only_cnt=0
+    hom_het_cnt=0
     original_cnt=0
     random_cnt=0
 
@@ -376,12 +379,9 @@ def get_new_sequence(dfname,dbname,rna_db,het,exclude,output_name):
             for i in trans_index_dict[k]:
                
                 if(change_df.iloc[i]['snp_type']=='hom'):
+                    hom_cnt+=1
                     hom_position_list.append((int(change_df.iloc[i]['c_start']),change_df.iloc[i]['mutation_type']))
-#                    if(change_df.iloc[i]['mutation_type']=='snv'):
-#                        transcript=change_seq(transcript,int(change_df.iloc[i]['c_start'])+shift,\
-#                                                  int(change_df.iloc[i]['c_end'])+shift,change_df.iloc[i]['c_content'],'snv')
-#                        des+="snv:"+str(change_df.iloc[i]['c_start'])+change_df.iloc[i]['c_content']+'_'
-#                    else:
+
                     if(strand_dict[k]=='-'):
                         transcript=change_seq(transcript,int(change_df.iloc[i]['c_start'])+shift,\
                                               int(change_df.iloc[i]['c_end'])+shift,str(Seq(str(change_df.iloc[i]['c_content'])).complement()),\
@@ -398,9 +398,10 @@ def get_new_sequence(dfname,dbname,rna_db,het,exclude,output_name):
                         shift+=(int(change_df.iloc[i]['c_end'])-int(change_df.iloc[i]['c_start'])+1)
                 else:
                     het_list.append(i)
-                    
+                    het_cnt+=1
             
             
+                
             if(len(hom_position_list)!=0):
                 new_sequence=""
                 new_des=""
@@ -424,7 +425,7 @@ def get_new_sequence(dfname,dbname,rna_db,het,exclude,output_name):
                     while(new_seq.find('None')!=-1):
                         new_seq=new_seq.replace('None','')
                     my_seqs.append(SeqRecord(Seq(str(new_seq),IUPAC.protein),\
-                                             id=db+'|'+pid+'|'+k+'|'+gid+'_0:'+str(int(sequence_dict[k][0])+shift)+'-'+str(int(sequence_dict[k][2])+shift)+'_'+new_des,\
+                                             id=db+'|'+pid+'|'+k+'|'+gid+'_0:'+str(int(sequence_dict[k][0])+shift)+'-'+str(int(sequence_dict[k][2])+shift),\
                                          description=new_des))
                     hom_only_cnt+=1
             
@@ -437,91 +438,106 @@ def get_new_sequence(dfname,dbname,rna_db,het,exclude,output_name):
                         new_seq=str(Seq(str(new_sequence),IUPAC.ambiguous_dna).complement().transcribe().translate(to_stop=True))
                     
                     my_seqs.append(SeqRecord(Seq(str(new_seq),IUPAC.protein),\
-                                                 id=db+'|'+pid+'|'+k+'|'+gid+'_0:'+str(int(sequence_dict[k][0]))+'-'+str(int(sequence_dict[k][2]))+'_no_variant',\
+                                                 id=db+'|'+pid+'|'+k+'|'+gid+'_0:'+str(int(sequence_dict[k][0]))+'-'+str(int(sequence_dict[k][2])),\
                                              description="no variant"))
                     original_cnt+=1
-            
-            if(het==1):
-                coding_start=int(sequence_dict[k][0])+shift-1 
-                coding_end=int(sequence_dict[k][2])+shift-1
-                count=int(len(transcript)/900)
-                if(len(transcript)<=900):
-                    count=1
-                cnt=0
                 
-                for l in range(0,count):
-                    l=l*900
-                    start=l
-                    if(start+1799<len(transcript)):
-                        stop=start+1799
+            
+            count=int(len(transcript)/900)
+            if(len(transcript)<=900):
+                count=1
+            cnt=0
+            
+            for l in range(0,count):
+                l=l*900
+                start=l
+                if(start+1799<len(transcript)):
+                    stop=start+1799
+                else:
+                    stop=len(transcript)-1 
+                
+               
+                het_number=len(het_list)
+                tmp_het_list=[]
+                for n in range(0,het_number):
+                    if((int(change_df.iloc[het_list[n]]['c_start'])>=start) & (int(change_df.iloc[het_list[n]]['c_start'])<=stop)):
+                        tmp_het_list.append(het_list[n])
+                for n in range(0, len(tmp_het_list)):
+                    new_sequence=""
+                    new_des=""
+                    if(strand_dict[k]=='-'):
+                        new_sequence=change_seq(transcript,int(change_df.iloc[tmp_het_list[n]]['c_start'])+shift,\
+                                              int(change_df.iloc[tmp_het_list[n]]['c_end'])+shift,\
+                                              str(Seq(str(change_df.iloc[tmp_het_list[n]]['c_content'])).complement()),\
+                                              change_df.iloc[tmp_het_list[n]]['mutation_type'])
                     else:
-                        stop=len(transcript)-1
-    #                while(coding_start>stop):
-    #                    l=l+1
-    #                    start=l*1800
-    #                    if(l+1799<len(transcript)):
-    #                        stop=l+1799
-    #                    else:
-    #                        stop=len(transcript)-1
-    #                #if(start>coding_end+shift)  
-                    
-                    het_number=len(het_list)   
-                    for n in range(0,het_number):
-                        new_sequence=""
-                        new_des=""
+                        new_sequence=change_seq(transcript,int(change_df.iloc[tmp_het_list[n]]['c_start'])+shift,\
+                                              int(change_df.iloc[tmp_het_list[n]]['c_end'])+shift,change_df.iloc[tmp_het_list[n]]['c_content'],\
+                                              change_df.iloc[tmp_het_list[n]]['mutation_type'])
+                    new_des=des+change_df.iloc[tmp_het_list[n]]['mutation_type']+":"+\
+                        str(change_df.iloc[tmp_het_list[n]]['c_start'])+'-'+str(change_df.iloc[tmp_het_list[n]]['c_end'])+\
+                        str(change_df.iloc[tmp_het_list[n]]['c_content'])
                         
-                        if((int(change_df.iloc[het_list[n]]['c_start'])>=start) & (int(change_df.iloc[het_list[n]]['c_start'])<=stop)):
+                    if(change_df.iloc[tmp_het_list[n]]['mutation_type']=='snv'):
+                        random_seq,random_des=generate_random_SNV_site(strand_dict[k],k,transcript[start:stop+1],change_df.iloc[tmp_het_list[n]]['c_start']-start,False)
+                    else:
+                        random_seq,random_des=generate_random_fs(strand_dict[k],transcript[start:stop+1],\
+                                                                     change_df.iloc[tmp_het_list[n]]['mutation_type'],\
+                                                                     len(change_df.iloc[tmp_het_list[n]]['c_content']),\
+                                                                     int(change_df.iloc[tmp_het_list[n]]['c_start'])-start)
+                        
+                    for j in range(n,len(tmp_het_list)):
+                        tmp_new_sequence=new_sequence
+                        tmp_new_des=new_des
+                        
+                        tmp_random_seq=random_seq
+                        tmp_random_des=random_des
+                        if(j!=n):
                             if(strand_dict[k]=='-'):
-                                new_sequence=change_seq(transcript,int(change_df.iloc[het_list[n]]['c_start'])+shift,\
-                                                      int(change_df.iloc[het_list[n]]['c_end'])+shift,\
-                                                      str(Seq(str(change_df.iloc[het_list[n]]['c_content'])).complement()),\
-                                                      change_df.iloc[het_list[n]]['mutation_type'])
+                                tmp_new_sequence=change_seq(tmp_new_sequence,int(change_df.iloc[tmp_het_list[j]]['c_start'])+shift,\
+                                                      int(change_df.iloc[tmp_het_list[j]]['c_end'])+shift,\
+                                                      str(Seq(str(change_df.iloc[tmp_het_list[j]]['c_content'])).complement()),\
+                                                      change_df.iloc[tmp_het_list[j]]['mutation_type'])
                             else:
-                                new_sequence=change_seq(transcript,int(change_df.iloc[het_list[n]]['c_start'])+shift,\
-                                                      int(change_df.iloc[het_list[n]]['c_end'])+shift,change_df.iloc[het_list[n]]['c_content'],\
-                                                      change_df.iloc[het_list[n]]['mutation_type'])
-                            new_des=des+change_df.iloc[het_list[n]]['mutation_type']+":"+\
-                            str(change_df.iloc[het_list[n]]['c_start'])+'-'+str(change_df.iloc[het_list[n]]['c_end'])+\
-                            str(change_df.iloc[het_list[n]]['c_content'])
-                        if(len(new_sequence)!=0):
-                            new_sequence=new_sequence[start:stop+1]
+                                tmp_new_sequence=change_seq(tmp_new_sequence,int(change_df.iloc[tmp_het_list[j]]['c_start'])+shift,\
+                                                      int(change_df.iloc[tmp_het_list[j]]['c_end'])+shift,change_df.iloc[tmp_het_list[j]]['c_content'],\
+                                                      change_df.iloc[tmp_het_list[j]]['mutation_type'])
+                            tmp_new_des=tmp_new_des+'_'+change_df.iloc[tmp_het_list[j]]['mutation_type']+":"+\
+                                str(change_df.iloc[tmp_het_list[j]]['c_start'])+'-'+str(change_df.iloc[tmp_het_list[j]]['c_end'])+\
+                                str(change_df.iloc[tmp_het_list[j]]['c_content'])
+                                
+                            if(change_df.iloc[tmp_het_list[j]]['mutation_type']=='snv'):
+                                tmp_random_des_store=random_des
+                                tmp_random_seq,tmp_random_des=generate_random_SNV_site(strand_dict[k],k,tmp_random_seq,change_df.iloc[tmp_het_list[j]]['c_start']-start,True)
+                                tmp_random_des+=tmp_random_des_store
+                                
+                                    
+                        
+                        if(len(tmp_new_sequence)!=0):
+                            tmp_new_sequence=tmp_new_sequence[start:stop+1]
                            
                             if(strand_dict[k]=='+'):
-                                new_seq=str(Seq(str(new_sequence),IUPAC.ambiguous_dna).transcribe().translate(to_stop=True))
+                                new_seq=str(Seq(str(tmp_new_sequence),IUPAC.ambiguous_dna).transcribe().translate(to_stop=True))
                             else:
-                                new_seq=str(Seq(str(new_sequence),IUPAC.ambiguous_dna).complement().transcribe().translate(to_stop=True))
+                                new_seq=str(Seq(str(tmp_new_sequence),IUPAC.ambiguous_dna).complement().transcribe().translate(to_stop=True))
                             cnt+=1
                             while(new_seq.find('None')!=-1):
                                 new_seq=new_seq.replace('None','')
                             my_seqs.append(SeqRecord(Seq(str(new_seq),IUPAC.protein),\
-                                                     id=db+'|'+pid+'|'+k+'|'+gid+'_'+str(cnt)+':'+str(start+1)+'-'+str(stop+1)+'_'+new_des,\
-                                                 description=new_des))
+                                                     id=db+'|'+pid+'|'+k+'|'+gid+'_'+str(cnt)+':'+str(start+1)+'-'+str(stop+1),\
+                                                 description=tmp_new_des))
                             if(len(hom_position_list)!=0):
                                 hom_het_cnt+=1
                             else:
                                 het_only_cnt+=1
-                            if(change_df.iloc[het_list[n]]['mutation_type']=='snv'):
-                                random_seq,random_des=generate_random_SNV_site(strand_dict[k],k,transcript[start:stop+1],int(change_df.iloc[het_list[n]]['c_start'])-start)
-                                my_seqs.append(SeqRecord(Seq(str(random_seq),IUPAC.protein),\
-                                                     id=db+'|'+pid+'|'+k+'|'+gid+'_'+str(cnt)+':'+str(start+1)+'-'+str(stop+1)+'_'+des+random_des,\
-                                                 description=des+random_des))
-                                random_cnt+=1
-    #                            else:
-    #                                my_seqs.append(SeqRecord(Seq(str(random_seq),IUPAC.protein),\
-    #                                                 id=db+'|'+pid+'|'+k+'|'+gid+'_'+str(cnt)+':'+str(start+1)+'-'+str(stop+1)+'_'+des+random_des,\
-    #                                             description=des))
-                            else:
-                                random_seq,random_des=generate_random_fs(strand_dict[k],transcript[start:stop+1],\
-                                                                         change_df.iloc[het_list[n]]['mutation_type'],\
-                                                                         len(change_df.iloc[het_list[n]]['c_content']),\
-                                                                         int(change_df.iloc[het_list[n]]['c_start'])-start)
-    #                            if(len(random_seq)!=0):
-                                my_seqs.append(SeqRecord(Seq(str(random_seq),IUPAC.protein),\
-                                                     id=db+'|'+pid+'|'+k+'|'+gid+'_'+str(cnt)+':'+str(start+1)+'-'+str(stop+1)+'_'+des+random_des,\
-                                                 description=des+random_des))
-                                random_cnt+=1
+                                
+                            cnt+=1
+                            my_seqs.append(SeqRecord(Seq(str(tmp_random_seq),IUPAC.protein),\
+                                                 id=db+'|'+pid+'|'+k+'|'+gid+'_'+str(cnt)+':'+str(start+1)+'-'+str(stop+1)+'_'+des+tmp_random_des,\
+                                             description=des+tmp_random_des))
+                            random_cnt+=1
                             
-    if(exclude==False):           
+    if(exclude==False):                      
         for key in sequence_dict.keys():
             if(key not in trans_index_dict.keys()):
                 pid=protein_id_dict[key][0]
@@ -530,31 +546,36 @@ def get_new_sequence(dfname,dbname,rna_db,het,exclude,output_name):
                 coding_end=int(sequence_dict[key][2])-1
                 new_sequence=sequence_dict[key][1][coding_start:coding_end+1]
                 
-                new_seq=str(Seq(str(new_sequence),IUPAC.ambiguous_dna).transcribe().translate(to_stop=True))     
+                new_seq=str(Seq(str(new_sequence),IUPAC.ambiguous_dna).transcribe().translate(to_stop=True))
+    #            else:
+    #                new_seq=str(Seq(str(new_sequence),IUPAC.ambiguous_dna).complement().transcribe().translate(to_stop=True))
+                
                 my_seqs.append(SeqRecord(Seq(str(new_seq),IUPAC.protein),\
-                                             id=db+'|'+pid+'|'+key+'|'+gid+'_0:'+str(coding_start+1)+'-'+str(coding_end+1)+'_no_variant',\
+                                             id=db+'|'+pid+'|'+key+'|'+gid+'_0:'+str(coding_start+1)+'-'+str(coding_end+1),\
                                          description="no variant"))
                 original_cnt+=1
+                
                     
     print("The number of proteins related is "+str(k_cnt))            
     print("The number of sequences generated is "+str(len(my_seqs)))
-
+    print("The number of homozygous is "+str(hom_cnt)) 
+    print("The number of heterozygous is "+str(het_cnt))
+    #return my_seqs
+    #handle=open(dataset_name+"_all_mutation_combination_"+version+".fasta","w")
     handle=open(output_name+".fasta","w")
-   
-    for sequence in my_seqs: 
+    for sequence in my_seqs:
         SeqIO.write(sequence,handle,"fasta")
         
     print("The number of sequences containing hom only is "+str(hom_only_cnt)) 
     print("The number of sequences containing het only is "+str(het_only_cnt)) 
     print("The number of mixed sequences is "+str(hom_het_cnt))
-    print("The number of original sequences is "+str(original_cnt)) 
-    print("The number of random sequences is "+str(random_cnt))      
-            
+    print("The number of original sequences is "+str(original_cnt))
+    print("The number of random sequences is "+str(random_cnt))
+
 #dfname=argv[1]  
 #dbname=argv[2]
 #rna_db=argv[3]
 #output_name=argv[4]
 #exclude=False
 #
-#get_new_sequence(dfname,dbname,rna_db,1,exclude,output_name)
-     
+#get_new_sequence_combination(dfname,dbname,rna_db,exclude,output_name)
