@@ -22,12 +22,12 @@ Python 3.X and corresponding version of Pandas, Biopython, Gffutils and  Bedtool
 
 Generate the customized database with at most one heterozyous variant per sequence.
 
-    python generate_db_pipeline.py -f DLD.exonic_variant_function -g gencode.v28.basic.annotation.gff3 -r gencode.v28.transcripts.basic.fasta -h 1 
+    python generate_db_pipeline.py -f DLD.exonic_variant_function -g gencode.v28.basic.annotation.gff3 -r gencode.v28.transcripts.basic.fasta -t 1 
 
   
 Generate the customized database with splicing variations(Exon-skipping event) and at most one heterozyous variant per sequence.
    
-      python generate_db_pipeline.py -f1 SE.MATS.JCEC.txt -f2 fromGTF.SE.txt -f DLD.exonic_variant_function -g gencode.v28.basic.annotation.gff3 -r gencode.v28.transcripts.basic.fasta -h 1 -s
+      python generate_db_pipeline.py -f1 SE.MATS.JCEC.txt -f2 fromGTF.SE.txt -f DLD.exonic_variant_function -g gencode.v28.basic.annotation.gff3 -r gencode.v28.transcripts.basic.fasta -t 1 -s
    
    
 
