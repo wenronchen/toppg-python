@@ -13,7 +13,7 @@ Python 3.X and corresponding version of Pandas, Biopython, Gffutils and  Bedtool
   - -g [ --gff ], require the annotation file name in gff3 format.
   - -r [ --rna ],  require the fasta file of reference transcript sequences.
   - -o [ --output ],  the output name for database, default="customized_db".
-  - -h [ --het ] <0|1|2>, the number of heterozygous genetic variants, default=0.
+  - -t [ --het ] <0|1|2>, the number of heterozygous genetic variants, default=1.
   - -s [ --splicing ], add the splicing variations to sequences.
   - -e [ --exclude ], exclude the sequences without any variations
 
